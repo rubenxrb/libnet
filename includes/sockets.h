@@ -19,16 +19,19 @@ typedef struct		sockaddr_in
 }					sockaddr_in;
 
 /* <sys/socket.h> */
+
 int socket(int protocolfamily, int type, int protocol);
 int connect(int socket, sockaddr *foreignAddress, unsigned int addressLen);
 int send(int socket, const void *msg, unsigned int msgLen, int flags);
 int recv(int socket, void *rcvBuffer, unsigned int buffLen, int flags);
+int bind(int socket, sockaddr *localAddres, unsigned int addressLen);
 
 /* <unistd.h> */
 int close(int socket);
 
 /*
- * ip = 4 ints that represent bytes "1.255.180.165.255" -> unsig chars (0 - 255)
+ * ip = (char *) that represent 4 integer numbers "1.255.180.255", these
+ * are read as (unsigned char) values. (0 - 255).
  * internet addresses are 32-bit (4 unsigned chars)
  * port number = 16-bit (2 unsigned chars) -> range from 1 - 65,535 (0 reserved)
  *
@@ -71,10 +74,20 @@ int close(int socket);
  *
  *	----- TCP Client -----
  *	1. Create TCP socket using socket();
- *	2. Establich a connection to the server using connect();
+ *	2. Establish a connection to the server using connect();
  *	3. Communicate using send() and recv();
  *	4. Close the connection with close();
  *	----------------------
+ *
+ *	----- TCP Server -----
+ *	1. create a TCP socket using socket();
+ *	2. assign a port number to the socket with bind()
+ *	3. tell the system to allow connections to be made to that port, listen();
+ *	4. repeatedly do the following:
+ *		- call accept() to get new socket for each client connection
+ *		- communicate with the client via the new socket using send() & recv()
+ *		- tell the system to allow connections to be made to that port, listen()
+ *	-----------------------
  *
  * int connect(int socket, sockaddr *foreignAddress, unsigned int addressLen);
  * socket = socket descriptor, addressLen = sizeof(sockaddr_in)
@@ -84,4 +97,5 @@ int close(int socket);
  * socket = socket descriptor, buffLen = max # of bytes it can recieve
  * both functions return the number of bytes sent/recieved, (-1) if fail
  *
+ * We'll always use the AF_INET flag, which specifies the Internet addr family.
  */
